@@ -145,14 +145,15 @@
       var matched = rooms.filter(function (r) { return r.id === rt.id; })[0];
       return !(matched && matched.status === 'inactive');
     });
-    var roomItems = this.getRoomMenuItems(roomtypes, function (rt) { return (rt && rt.name) || ''; });
 
     wrapper.innerHTML = '';
     if (!roomtypes.length) return;
 
-    roomItems.forEach(function (item) {
-      var rt = self.getRoomMenuRoomtype(item);
-      var roomLabel = self.getRoomMenuLabel(item);
+    // Room Preview 카드는 groupName 과 무관하게 **항상 전체 객실**을 깐다.
+    // 그룹으로 접히는 곳은 헤더 ROOMS 메뉴와 객실 상세 탭뿐이고,
+    // 카드는 저마다 자기 객실 상세로 연결한다.
+    roomtypes.forEach(function (rt) {
+      var roomLabel = (rt && rt.name) || '';
       if (!String(roomLabel).trim() || !rt) return;
       var thumbs = (rt.images || []).filter(function (img) { return img.category === 'roomtype_thumbnail'; });
       var selected = thumbs.filter(function (t) { return t.isSelected; });
@@ -163,7 +164,7 @@
       var slide = document.createElement('div');
       slide.className = 'swiper-slide item';
       var a = document.createElement('a');
-      a.href = self.getRoomMenuLink(item);
+      a.href = self.getRoomMenuLink(rt);
       a.className = 'custom_mousemove';
       a.setAttribute('data-hover', 'Click');
 

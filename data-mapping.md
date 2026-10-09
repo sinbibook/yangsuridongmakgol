@@ -92,8 +92,31 @@ roomStructures[0] + "/ " + 값≥1인 항목들 나열
 
 - ROOMS 서브메뉴: `customFields.roomtypes[].name` 기준 `<li><a href="room.html?room_id={id}">` 생성.
 - SPECIAL 서브메뉴: `property.facilities[].name` 기준 `<li><a href="facility.html?id={id}">` 생성.
-- **모바일 우측 하단 원형 예약 버튼**(`.m-reserve-btn`, `data-booking-link`): `var(--color-secondary)` 배경 + 시계 아이콘(`real_clock.png` 마스크, 흰색) + "예약". 768px 이하에서만 노출. 기존 이미지 기반 모바일 예약 버튼(`.btn_reserve` 실시간예약_MO)·footer `ft_btn_reserve`(talk.png)는 제거.
-- 예약 버튼 시계 아이콘(`.main_reserve`/`room`/`allmenu`/모바일)은 `::before` 마스크로 `var(--color-secondary)` 적용(호버 시 흰색).
+- **우측 하단 플로팅 버튼**(`common/header.html`): 예약하기 `.ft_btn_reserve.for_m`(talk.png, `data-booking-link`, 모바일만) + 상담하기 `#talk_custom_button`(consult.png, `data-consult-button`, 총판A + tripPropertyId 일 때). 다른 템플릿과 같은 구현.
+- **모바일 헤더 예약 아이콘**(`.btn_reserve`, `data-booking-link`): 특가 배지(`price.png`) + 예약 아이콘(`mbt_reserve01.png`, 스크롤 시 `mbt_reserveo01.png`). ≡ 왼쪽, YBS 오른쪽.
+- 예약 버튼 시계 아이콘(`.main_reserve`/`room`/`allmenu`)은 `::before` 마스크로 `var(--color-secondary)` 적용(호버 시 흰색).
+
+### 헤더 네이버·인스타그램 버튼 (`homepage.socialLinks`)
+
+| data-\* 속성                            | 요소                                   | JSON 경로                                        |
+| --------------------------------------- | -------------------------------------- | ------------------------------------------------ |
+| `data-homepage-socialLinks-blog`        | 네이버 버튼 `<a>` (`.hd_sns_btn` 안)   | `homepage.socialLinks.blog` (없으면 숨김)        |
+| `data-homepage-socialLinks-instagram`   | 인스타그램 버튼 `<a>` (`.hd_sns_btn` 안) | `homepage.socialLinks.instagram` (없으면 숨김) |
+| `data-social-wrap`                      | 두 버튼 래퍼 `.hd_sns_btn`             | 보이는 버튼이 없으면 래퍼째 숨김                 |
+
+- `HeaderFooterMapper.mapSocialLinks()`(mapPage 에서 호출)가 `facebook / instagram / blog / youtube` 4종을 처리한다.
+  값이 있으면 `href` + `target="_blank" rel="noopener"` 를 넣고 노출, `null`·빈 문자열·공백·키 없음이면 숨긴다.
+  D형 헤더 마크업은 blog(네이버)·instagram 두 개. 마크업은 `style="display: none"` 으로 시작(매핑 전 깜빡임 없음).
+- 헤더에 버튼이 하나라도 보이면 루트(`<html>`)에 `data-social="on"`, 아니면 `"off"`.
+- 위치·크기: 원본 스킨의 `.hd_sns_btn` 훅(최상단 숨김 · 스크롤 헤더에서만 노출)을 그대로 쓴다.
+  - PC(≥1000): **스크롤 헤더(`.header.on`)에서만** `메뉴 | 예약하기 | YBS | [N][인스타] | ≡`, 32px, 간격 10px, YBS 와 15px.
+    최상단(투명 헤더)에서는 보이지 않는다.
+  - 1000~1100px 스크롤 헤더: 소셜이 보이면(`data-social="on"`) 메뉴 여백을 `0 20px / 0 20px` → `0 8px / 0 14px` 로 줄여
+    ABOUT 이 로고 영역과 겹치지 않게 한다.
+  - 모바일(≤999): 최상단·스크롤 모두 YBS 아이콘 왼쪽 `[N][인스타] YBS ≡`(absolute right:157px), 26px, 간격 8px.
+    YBS 가 없으면(`a.ybs` 가 `display: none`) right:64px 로 당겨 `[N][인스타] ≡`.
+- 어드민 프리뷰 `section_update` 의 `section === 'socialLinks'` 는 `pages[page].sections[0]` 이 아니라
+  `homepage.socialLinks` 에 반영하고 헤더 버튼만 다시 매핑한다.
 
 ---
 
@@ -108,7 +131,7 @@ roomStructures[0] + "/ " + 값≥1인 항목들 나열
 | `data-footer-business-number` | 사업자번호 `<span>`         | `property.businessInfo.businessNumber`     |
 | `data-footer-representative`  | 대표자 `<span>`             | `property.businessInfo.representativeName` |
 
-- `.ft_link`(ABOUT/ROOMS/SPECIAL/RESERVE), copyright, 개인정보처리방침은 **정적 유지**(트립일레븐 공통).
+- `.ft_link`(ABOUT/ROOMS/SPECIAL/RESERVE), 개인정보처리방침은 **정적 유지**(트립일레븐 공통). copyright 는 `property.tripProviderName` 으로 치환한다(아래 「카피라이트」).
 
 ---
 
@@ -286,10 +309,32 @@ hero.images[isSelected] 기준:
 | `data-room-gallery`        | `.list` (li p배경+img 순서 주입, 5칸 고정) | `roomtypes[current]` 컨셉 및 외경(`roomtype_exterior`, isSelected) 순서대로 (scaleAni 레이아웃 유지) |
 | `data-room-list-slides`    | `.main_room .preivew .swiper-wrapper`      | `roomtypes[]` (+rooms id매칭 구조, 미리보기 슬라이더)                                                |
 | `data-booking-link`        | info 예약하기 `<a>`                        | `property.realtimeBookingId` (header-footer-mapper 공통 처리)                                        |
+| `data-room-floorplan-section` | `.room_floorplan` (제목 없음, 이미지 한 장) | 평면도 이미지가 없으면 **섹션 전체 미노출** |
+| `data-room-floorplan-image` | `.room_floorplan img` | 원본 객실 상세의 평면도 영역에서 크롤링된 이미지 |
 
 - 이미지 영역은 각 영역이 지정한 category(hero/info=interior, 갤러리=exterior, 미리보기=thumbnail)에서 `isSelected` 이미지를 순서대로 채우며, 없으면 `ImageHelpers` empty placeholder.
 
 ---
+
+
+### 객실 평면도
+
+평면도는 일반 객실 이미지로 대체하지 않는다. 크롤러가 원본 객실 상세의 **평면도 HTML 영역**을 따로 탐지해 아래 중 하나로 저장했을 때만 노출한다.
+
+| 지원 데이터 형태                                                                           | 비고            |
+| ------------------------------------------------------------------------------------------ | --------------- |
+| `roomtypes[current].floorplanImages[]`                                                     | 권장            |
+| `roomtypes[current].floorplans[]`                                                          | 호환            |
+| `roomtypes[current].floorplan.images[]`                                                    | 호환            |
+| `roomtypes[current].images[].category = "roomtype_floorplan"`                              | 카테고리형 호환 |
+| `roomtypes[current].images[].category = "floorplan"` / `"room_floorplan"` / `"floor_plan"` | 카테고리형 호환 |
+
+⚠️ **제목·설명 자리가 없다.** 도면 이미지 한 장이 전부다.
+⚠️ **데이터가 없으면 `[data-room-floorplan-section]` 을 `display:none` 한다.** 마크업의 기본값도 `style="display:none"` 이라 매핑 전에도 빈 구간이 보이지 않는다. URL 이 있는데 로드가 실패해도 구간째 숨긴다.
+⚠️ `roomtype_interior` / `roomtype_thumbnail` / `roomtype_exterior` 는 평면도 폴백으로 쓰지 않는다.
+⚠️ `layout-map` 의 **배치도**는 반대로 이미지가 없어도 placeholder 를 세운다 — 숙소에 하나뿐인 자리라 업주가 넣을 곳을 알아야 하기 때문이다. 규칙이 정반대이니 헷갈리지 말 것.
+
+⚠️ **백오피스가 아직 안 내려준다.** `groupName` 과 마찬가지로 앞으로 내려줄 예정이라 미리 대응해 둔 것이다. 시드에도 넣지 않는다.
 
 ## facility.html (SPECIAL 시설)
 
@@ -368,44 +413,111 @@ hero.images[isSelected] 기준:
 
 ---
 
-## 객실 그룹 규칙 (`groupname`)
+## 객실 그룹 규칙 (`groupName`)
 
-`roomtypes[].groupname`(`groupName` / `group_name` 호환)이 **하나라도 있으면** 그룹 모드로
-동작한다. 없으면 객실 하나가 항목 하나다. 규칙은 `base-mapper.js` 한 곳에 있고
-헤더 메뉴 / 미리보기 / 객실 상세 탭이 모두 같은 소스를 쓴다.
+`roomtypes[].groupName`이 **하나라도 있으면** 그룹 모드로
+동작한다. 없으면 객실 하나가 항목 하나다. 규칙은 `base-mapper.js` 한 곳에 있다.
+
+**그룹으로 접히는 곳은 헤더 ROOMS 메뉴와 객실 상세 탭뿐이다.**
+Room Preview(미리보기) 카드는 그룹과 무관하게 **항상 전체 객실**을 깔고,
+카드마다 자기 객실 상세로 연결한다 — 원본이 그렇다.
 
 | 함수                     | 역할                                                                      |
 | ------------------------ | ------------------------------------------------------------------------- |
-| `hasRoomGroups()`        | `groupname` 이 하나라도 있는지                                            |
+| `hasRoomGroups()`        | `groupName` 이 하나라도 있는지                                            |
 | `getRoomMenuItems()`     | 그룹 단위 항목 배열 — `{ label, groupName, roomtype(대표), roomtypes[] }` |
 | `getRoomMenuLabel()`     | 메뉴에 쓸 이름 — **그룹명** (없으면 객실명)                               |
 | `getRoomMenuLink()`      | **그룹의 첫 객실** 상세로 연결                                            |
 | `isRoomMenuItemActive()` | 그룹 안 **어느 객실 id 로 들어와도** 그 항목을 활성으로 본다              |
+| `mapRoomSlides()`        | 미리보기 카드 — **그룹을 쓰지 않고 `roomtypes[]` 전체**를 깐다            |
 
 ### 화면 흐름
 
 ```
-헤더 ROOMS / 미리보기 페이지   →  그룹명        (스파동 | 프리미엄동)
+헤더 ROOMS 메뉴        →  그룹명        (스파동 | 프리미엄동)
         ↓ 그룹명 클릭
-그룹의 첫 번째 객실 상세        →  탭에 그 그룹의 모든 객실
-                                  (미리보기 | 에버골드 | 퍼블하제 | 유메)
+그룹의 첫 번째 객실 상세 →  탭에 그 그룹의 모든 객실
+                            (미리보기 | 에버골드 | 퍼블하제 | 유메)
+
+Room Preview(미리보기)  →  전체 객실 (그룹과 무관), 카드마다 자기 객실 상세로 연결
 ```
 
 ### ⚠️ 객실 상세 탭은 그룹을 펼친다
 
-헤더·미리보기는 그룹명 하나로 접히므로, **상세 페이지 탭까지 접으면 그룹의 첫 객실
-외에는 UI 로 도달할 방법이 없다.** 그래서 탭은 현재 객실이 속한 그룹을 찾아
-**그 그룹의 객실만** 렌더한다.
+헤더는 그룹명 하나로 접히므로, **상세 페이지 탭까지 접으면 그룹의 첫 객실
+외에는 헤더에서 도달할 방법이 없다.** 그래서 탭은 현재 객실이 속한 그룹을 찾아
+**그 그룹의 객실만** 렌더한다. (미리보기에서는 어느 객실이든 바로 갈 수 있다)
 
 | 상황                             | 탭                                                                                 |
 | -------------------------------- | ---------------------------------------------------------------------------------- |
 | 그룹 밖 (미리보기 / 미그룹 객실) | `미리보기 \| 스파동 \| 프리미엄동 \| …`                                            |
 | 그룹 안 (멤버 2실 이상)          | `미리보기 \| 에버골드 \| 퍼블하제 \| 유메`                                         |
 | 멤버 1실 그룹                    | 펼치지 않음 — 항목이 하나뿐이라 탭이 비다시피 하고 그룹명 = 객실명이라 의미가 없다 |
-| `groupname` 없음                 | 기존과 동일 (객실 하나가 항목 하나)                                                |
+| `groupName` 없음                 | 기존과 동일 (객실 하나가 항목 하나)                                                |
 
 **다른 그룹은 이 줄에 섞지 않는다.** 그룹명과 객실명이 나란히 놓이면 부모/자식이
 형제처럼 보인다. 다른 그룹으로는 헤더 ROOMS 메뉴나 미리보기를 거쳐 이동한다.
 
 탭을 다시 그릴 때 **첫 li(`미리보기`)는 남기고** `data-generated="room"` 이 붙은
 이전 생성분만 지운다. 통째로 비우면 미리보기로 돌아갈 길이 없어진다.
+
+---
+
+## 카피라이트 (`data-copyright`)
+
+푸터 카피라이트는 `property.tripProviderName`(Trip11 공급자명)으로 렌더한다.
+
+`common/footer.html` 의 카피라이트 요소에 템플릿 문자열을 두고,
+`header-footer-mapper.js` 의 `mapCopyright()` 가 `{provider}` 를 치환한다.
+
+```html
+<a href="http://trip11.kr/" data-copyright="COPYRIGHT©{provider}. ALL RIGHTS RESERVED.">
+  COPYRIGHT©(주)트립일레븐. ALL RIGHTS RESERVED.
+</a>
+```
+
+| `property.tripProviderName` | 결과                                  |
+| --------------------------- | ------------------------------------- |
+| `"신비서"`                  | `COPYRIGHT©신비서. ALL RIGHTS RESERVED.` |
+| `""` / 미입력               | HTML 에 적힌 기존 문구 그대로          |
+
+- 문구 형식(대소문자, `ⓒ` 접두, `(주)` 표기)은 템플릿마다 달라서 **형식은 `data-copyright` 속성값이 갖고
+  매퍼는 이름만 바꾼다**.
+- 값이 없을 때(백오피스 미입력 → `""`) 는 건드리지 않으므로 기존 트립일레븐 문구가 그대로 남는다.
+- `trip11.kr` 링크는 변경하지 않는다.
+
+---
+
+## landing.html (선택 기능 — 여러 숙소 게이트)
+
+t-template-A 와 같은 구현이다 (상세 스키마·카드 구조는 `t-template-A/data-mapping.md` 의 landing 절).
+헤더/푸터가 없는 별도 페이지이고, 카드(`pages.landing.sections[0].about[]`, 1~3장)를 그리드로 나란히 놓는다.
+
+**루트 가드** — `IndexMapper.mapPage()` → `maybeRedirectToLanding()` → `shouldEnterLanding()`
+
+- 어드민 프리뷰 iframe 안이면 skip
+- `pages.landing.sections[0].enabled !== true` 면 skip — **명시적으로 켠 숙소만** 가로챈다.
+  섹션이 없거나 `enabled` 가 false/누락이면 기존처럼 `index.html` 을 그대로 보여준다
+- `document.referrer` 가 같은 origin 이면 skip (헤더 로고, 랜딩의 자기 자신 카드)
+- `document.referrer` 호스트가 `about[].domain` 중 하나면 skip (연결 숙소 랜딩에서 카드로 넘어옴)
+- 그 외 (주소 직접 입력·즐겨찾기·검색/외부 링크) → `location.replace('landing.html')`
+
+`landing.html` 을 직접 열었는데 `enabled !== true` 면 `404.html` 로 보낸다.
+
+쿼리 파라미터 없이 **referrer** 로 "랜딩을 이미 거쳤는지" 를 가른다. 그래서 헤더 로고 링크는 원래대로
+`index.html`, 랜딩 카드도 `./index.html` / `{domain}/` 로 보낸다.
+
+- 크로스 도메인 referrer 는 브라우저 기본 정책(`strict-origin-when-cross-origin`)상 origin 만 오므로 호스트로만 비교한다 (`www.` 유무 무시).
+- 연결 숙소 B 의 랜딩 `about[]` 에 A 의 도메인이 없으면, A 랜딩 → B 카드 클릭 시 B 의 랜딩이 한 번 더 뜬다.
+- https → http 로 넘어가면 브라우저가 referrer 를 보내지 않아 랜딩이 다시 뜬다 (연결 숙소 도메인은 https 전제).
+
+**카드 링크** (`landing-mapper.js` `getCardLink()`) — 전부 새 탭. 도착한 index 는 referrer 로 랜딩을 건너뛴다
+
+| 조건                                         | 이동                          |
+| -------------------------------------------- | ----------------------------- |
+| `about[i].propertyId === property.id`        | `./index.html`                |
+| 연결 숙소 + `about[i].domain` 있음           | `{domain}/`                   |
+| 연결 숙소인데 `domain` 없음                  | `href="#"` (비활성)           |
+
+카드 배경은 `about[i].images` 첫 장, 로고는 `hero.images[]` 중 `blockId === about[i].blockId`,
+로고가 없으면 `about[i].propertyName` 텍스트, `about[i].title` 은 입력했을 때만 보인다.
