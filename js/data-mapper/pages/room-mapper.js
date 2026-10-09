@@ -41,6 +41,7 @@
     this.mapIntro();
     this.mapTable();
     this.mapGallery();
+    this.mapFloorplan();
     this.mapRoomSlides();
     this.refreshSwipers();
   };
@@ -289,14 +290,15 @@
       var matched = rooms.filter(function (r) { return r.id === rt.id; })[0];
       return !(matched && matched.status === 'inactive');
     });
-    var roomItems = this.getRoomMenuItems(roomtypes, function (rt) { return (rt && rt.name) || ''; });
 
     wrapper.innerHTML = '';
     if (!roomtypes.length) return;
 
-    roomItems.forEach(function (item) {
-      var rt = self.getRoomMenuRoomtype(item);
-      var roomLabel = self.getRoomMenuLabel(item);
+    // Room Preview 카드는 groupName 과 무관하게 **항상 전체 객실**을 깐다.
+    // 그룹으로 접히는 곳은 헤더 ROOMS 메뉴와 객실 상세 탭뿐이고,
+    // 카드는 저마다 자기 객실 상세로 연결한다.
+    roomtypes.forEach(function (rt) {
+      var roomLabel = (rt && rt.name) || '';
       if (!String(roomLabel).trim() || !rt) return;
       var thumbs = (rt.images || []).filter(function (img) { return img.category === 'roomtype_thumbnail'; });
       var selected = thumbs.filter(function (t) { return t.isSelected; });
@@ -307,7 +309,7 @@
       var slide = document.createElement('div');
       slide.className = 'swiper-slide item';
       var a = document.createElement('a');
-      a.href = self.getRoomMenuLink(item);
+      a.href = self.getRoomMenuLink(rt);
       a.className = 'custom_mousemove';
       a.setAttribute('data-hover', 'Click');
 
@@ -326,6 +328,35 @@
       a.appendChild(txt);
       slide.appendChild(a);
       wrapper.appendChild(slide);
+    });
+  };
+
+  /* MAPPER: roomtypes[current] 평면도 이미지 → [data-room-floorplan-image]
+     ⚠️ 제목·설명 자리가 없다. 도면 이미지 한 장이 전부다.
+     ⚠️ 이미지가 없으면 [data-room-floorplan-section] 을 통째로 숨긴다 —
+        원본에 없던 빈 구간을 남기지 않는다.
+        (layout-map 의 배치도는 반대로 없어도 placeholder 를 세운다 — 규칙이 정반대다.)
+     ⚠️ URL 이 있는데 로드가 죽어도 구간째 숨긴다 — 깨진 아이콘만 남는 것보다 낫다. */
+  RoomMapper.prototype.mapFloorplan = function () {
+    var sections = document.querySelectorAll('[data-room-floorplan-section]');
+    if (!sections.length) return;
+
+    var image = this.getRoomFloorplanImage(this.getCurrentRoomtype());
+    var url = (image && image.url) || '';
+
+    sections.forEach(function (el) {
+      el.style.display = url ? '' : 'none';
+    });
+    if (!url) return;
+
+    document.querySelectorAll('[data-room-floorplan-image]').forEach(function (img) {
+      img.alt = '객실 평면도';
+      img.onerror = function () {
+        sections.forEach(function (el) {
+          el.style.display = 'none';
+        });
+      };
+      img.src = url;
     });
   };
 

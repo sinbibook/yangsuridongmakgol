@@ -1,7 +1,7 @@
 {
   "metadata": {
-    "version": "1.0.0",
-    "generatedAt": "2026-09-10T08:20:58.394137784Z",
+    "version": "1.1.0",
+    "generatedAt": "2026-10-09T07:47:07.516942093Z",
     "templateType": "trip_d",
     "propertyId": "e7d28cda-967f-47bf-921c-90306be06c57",
     "homepageId": "b51b8582-9297-47fe-949f-c60bf9d1d550"
@@ -27,6 +27,9 @@
     "domain": "yangsuridongmakgol.kr",
     "realtimeBookingId": "https://www.bookingplay.co.kr/booking/1/9898",
     "ybsId": "",
+    "tripPropertyId": "9898",
+    "partnerType": "distributor_a",
+    "tripProviderName": "트립일레븐",
     "amenities": [
       "흡연구역(지정장소)",
       "주차장"
@@ -1015,6 +1018,35 @@
                 "description": ""
               },
               "enabled": true
+            }
+          ]
+        },
+        "landing": {
+          "sections": [
+            {
+              "enabled": false,
+              "hero": {
+                "images": [ ]
+              },
+              "about": [
+                {
+                  "blockId": "sample-card-1",
+                  "propertyId": "sample-property-1",
+                  "propertyName": "현재 숙소",
+                  "title": "",
+                  "images": [ ],
+                  "order": 1
+                },
+                {
+                  "blockId": "sample-card-2",
+                  "propertyId": "sample-property-2",
+                  "propertyName": "연결 숙소 2",
+                  "domain": "http://localhost:8000/t-template-D",
+                  "title": "",
+                  "images": [ ],
+                  "order": 2
+                }
+              ]
             }
           ]
         }
